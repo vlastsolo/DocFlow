@@ -4,6 +4,7 @@ import { Organization } from "../models/organization";
 import multiparty from 'multiparty';
 import fs from 'fs';
 import path from 'path';
+import { handleError, createError } from "../utils/errorHandler";
 
 export async function organizationsFind(req: Request, res: Response, next: NextFunction) {
   try {
@@ -12,14 +13,8 @@ export async function organizationsFind(req: Request, res: Response, next: NextF
     req.organizations = organizations;
     next();
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error fetching organizations:", error.message);
-      res.status(500).json({ error: "Internal server error" });
-    } else {
-      console.error("Unknown error occurred:", error);
-      res.status(500).json({ error: "Internal server error" });
+    handleError(error, res, "Error fetching organizations");
     }
-}
 }
 
 export async function organizationFindById(req: Request, res: Response, next: NextFunction) {
@@ -31,21 +26,15 @@ export async function organizationFindById(req: Request, res: Response, next: Ne
     });
 
     if (!organization) {
-      return res.status(404).json({ error: "Organization not found" });
+      throw createError("Organization not found", 404);
     }
 
     req.organizations = [organization];
 
     next();
 } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error fetching organizations:", error.message);
-      res.status(500).json({ error: "Internal server error1" });
-    } else {
-      console.error("Unknown error occurred:", error);
-      res.status(500).json({ error: "Internal server error1" });
+    handleError(error, res, "Error fetching organization");
     }
-}
 }
 
 export async function organizationCreateGet (req: Request, res: Response, next: NextFunction) {
@@ -53,14 +42,8 @@ export async function organizationCreateGet (req: Request, res: Response, next: 
     req.organizations = []; // или установите пустой массив/объект
     next();
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error:", error.message);
-      res.status(500).json({ error: "Internal server error21" });
-    } else {
-      console.error("Unknown error occurred:", error);
-      res.status(500).json({ error: "Internal server error21" });
+      handleError(error, res, "Error preparing organization creation form");
     }
-  }
 }
 
 export async function organizationCreatePost(req: Request, res: Response, next: NextFunction) {
@@ -69,8 +52,10 @@ export async function organizationCreatePost(req: Request, res: Response, next: 
     const uploadDir = path.join(process.cwd(), 'uploads', 'organizations');
     
     // Создаем директорию для загрузок, если она не существует
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    try {
+      await fs.promises.access(uploadDir);
+    } catch {
+      await fs.promises.mkdir(uploadDir, { recursive: true });
     }
 
     form.parse(req, async (err, fields, files) => {
@@ -83,7 +68,7 @@ export async function organizationCreatePost(req: Request, res: Response, next: 
         const file = files.file?.[0];
         
         if (!file) {
-          return res.status(400).json({ error: 'No file uploaded' });
+          throw createError('No file uploaded', 400);
         }
 
         // Генерируем уникальное имя файла
@@ -92,7 +77,7 @@ export async function organizationCreatePost(req: Request, res: Response, next: 
         const filePath = path.join(uploadDir, fileName);
 
         // Перемещаем файл в целевую директорию
-        fs.renameSync(file.path, filePath);
+        await fs.promises.rename(file.path, filePath);
 
         // Сохраняем информацию о файле в req для использования в контроллере
         req.fileInfo = {
@@ -108,17 +93,10 @@ export async function organizationCreatePost(req: Request, res: Response, next: 
 
         next();
       } catch (error) {
-        console.error('Error processing file:', error);
-        res.status(500).json({ error: 'Error processing file' });
+        handleError(error, res, 'Error processing file');
       }
     });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error:", error.message);
-      res.status(500).json({ error: "Internal server error" });
-    } else {
-      console.error("Unknown error occurred:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+    handleError(error, res, "Error in organization creation");
   }
 }
