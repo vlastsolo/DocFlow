@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import {organizationsFind, organizationFindById, organizationCreate} from "../middleware/organizationMiddleware";
+import {organizationsFind, organizationFindById, organizationCreateGet, organizationCreatePost} from "../middleware/organizationMiddleware";
 
 export class organizationController {
     public getOrganizations = [organizationsFind, this.renderOrganizations];
@@ -18,7 +18,7 @@ export class organizationController {
       })
     }
     
-    public createOrganizationGet = [organizationCreate, this.renderOrganizationGet];
+    public createOrganizationGet = [organizationCreateGet, this.renderOrganizationGet];
     private renderOrganizationGet (req: Request, res: Response, next: NextFunction){
             try {
           res.render("create_organization_form")
@@ -26,5 +26,21 @@ export class organizationController {
             next(error);
         }
     }
-
+    public createOrganizationPost = [organizationCreatePost, this.processOrganizationPost];
+    private async processOrganizationPost (req: Request, res: Response, next: NextFunction){
+      try {
+        const { fileInfo } = req;
+        if (!fileInfo) {
+          return res.status(400).redirect('/organizations/create?error=true&message=No file uploaded');
+        }
+        
+        // Перенаправляем с сообщением об успехе
+        res.redirect('/organizations/create?success=true');
+        console.log(fileInfo?.originalName+' '+fileInfo?.mimetype)
+      } catch (error) {
+        console.error('Error creating organization:', error);
+        res.redirect('/organizations/create?error=true&message=Error creating organization');
+      }
+    }
 }
+

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Загрузка файлов</title>
+    <title>Создание организации</title>
     <style>
         * {
             box-sizing: border-box;
@@ -49,7 +49,8 @@
         }
 
         input[type="text"],
-        input[type="file"] {
+        input[type="file"],
+        textarea {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #ddd;
@@ -59,7 +60,8 @@
         }
 
         input[type="text"]:focus,
-        input[type="file"]:focus {
+        input[type="file"]:focus,
+        textarea:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -154,20 +156,56 @@
             display: none;
         }
 
+        .pdf-preview {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .pdf-icon {
+            font-size: 48px;
+            color: #e53e3e;
+        }
+
         .file-type {
             margin-top: 10px;
             font-weight: 500;
             color: #667eea;
             display: none;
         }
+        
+        .server-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .server-error {
+            background-color: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        
+        .server-success {
+            background-color: #efe;
+            color: #363;
+            border: 1px solid #cfc;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Создание организации</h1>
+        
+        <!-- Сообщения с сервера -->
+        <div class="server-message" id="serverMessage"></div>
        
         <form id="uploadForm" action="/organizations/create" method="POST" enctype="multipart/form-data">
-
+            
             <div class="form-group">
                 <label for="file">Добавьте фото или PDF карточки организации:</label>
                 <div class="file-input-wrapper">
@@ -180,89 +218,107 @@
 
             <div class="file-preview">
                 <img id="imagePreview" src="#" alt="Предпросмотр">
+                <div class="pdf-preview" id="pdfPreview">
+                    <div class="pdf-icon">📄</div>
+                    <div>PDF документ</div>
+                </div>
                 <div class="file-type" id="fileType"></div>
             </div>
 
             <button type="submit" class="btn-submit">Создать организацию</button>
            
-            <div class="success" id="successMessage">Файл успешно загружен!</div>
+            <div class="success" id="successMessage">Организация успешно создана!</div>
         </form>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('file');
-            const fileName = document.getElementById('fileName');
-            const imagePreview = document.getElementById('imagePreview');
-            const fileType = document.getElementById('fileType');
-            const form = document.getElementById('uploadForm');
-            const titleInput = document.getElementById('title');
-            const titleError = document.getElementById('titleError');
-            const fileError = document.getElementById('fileError');
-            const successMessage = document.getElementById('successMessage');
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file');
+        const fileName = document.getElementById('fileName');
+        const imagePreview = document.getElementById('imagePreview');
+        const pdfPreview = document.getElementById('pdfPreview');
+        const fileType = document.getElementById('fileType');
+        const form = document.getElementById('uploadForm');
+        const fileError = document.getElementById('fileError');
+        const serverMessage = document.getElementById('serverMessage');
 
-            // Обработчик выбора файла
-            fileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    fileName.textContent = file.name;
-                   
-                    // Показываем тип файла
-                    fileType.textContent = file.type.includes('pdf') ? 'PDF документ' : 'Изображение';
-                    fileType.style.display = 'block';
+        // Функция для отображения сообщений с сервера
+        function showServerMessage(text, isError = false) {
+            serverMessage.textContent = text;
+            serverMessage.className = isError ? 'server-message server-error' : 'server-message server-success';
+            serverMessage.style.display = 'block';
+            
+            // Автоматическое скрытие через 5 секунд
+            setTimeout(() => {
+                serverMessage.style.display = 'none';
+            }, 5000);
+        }
 
-                    // Предпросмотр для изображений
-                    if (file.type.includes('image')) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            imagePreview.src = e.target.result;
-                            imagePreview.style.display = 'block';
-                        }
-                        reader.readAsDataURL(file);
-                    } else {
-                        imagePreview.style.display = 'none';
+        // Обработчик выбора файла
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = file.name;
+               
+                // Показываем тип файла
+                const isPDF = file.type.includes('pdf') || file.name.toLowerCase().endsWith('.pdf');
+                fileType.textContent = isPDF ? 'PDF документ' : 'Изображение';
+                fileType.style.display = 'block';
+
+                // Предпросмотр для изображений
+                if (file.type.includes('image')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                        pdfPreview.style.display = 'none';
                     }
-
-                    fileError.style.display = 'none';
-                } else {
-                    fileName.textContent = 'Файл не выбран';
+                    reader.readAsDataURL(file);
+                } else if (isPDF) {
                     imagePreview.style.display = 'none';
-                    fileType.style.display = 'none';
-                }
-            });
-
-            // Валидация формы
-            form.addEventListener('submit', function(e) {
-                let isValid = true;
-
-                if (!titleInput.value.trim()) {
-                    titleError.style.display = 'block';
-                    isValid = false;
+                    pdfPreview.style.display = 'block';
                 } else {
-                    titleError.style.display = 'none';
+                    imagePreview.style.display = 'none';
+                    pdfPreview.style.display = 'none';
                 }
 
-                if (!fileInput.files[0]) {
-                    fileError.style.display = 'block';
-                    isValid = false;
-                } else {
-                    fileError.style.display = 'none';
-                }
-
-                if (!isValid) {
-                    e.preventDefault();
-                }
-            });
-
-            // Показ сообщения об успехе, если есть параметр в URL
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('success') === 'true') {
-                successMessage.style.display = 'block';
-                setTimeout(() => {
-                    successMessage.style.display = 'none';
-                }, 5000);
+                fileError.style.display = 'none';
+            } else {
+                fileName.textContent = 'Файл не выбран';
+                imagePreview.style.display = 'none';
+                pdfPreview.style.display = 'none';
+                fileType.style.display = 'none';
             }
         });
+
+        // Валидация формы перед отправкой
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            if (!fileInput.files[0]) {
+                fileError.style.display = 'block';
+                isValid = false;
+            } else {
+                fileError.style.display = 'none';
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                showServerMessage('Пожалуйста, выберите файл', true);
+            }
+        });
+
+        // Показ сообщения из URL параметров
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            showServerMessage('Организация успешно создана!');
+        }
+        
+        if (urlParams.get('error') === 'true') {
+            const message = urlParams.get('message') || 'Произошла ошибка при создании организации';
+            showServerMessage(message, true);
+        }
+    });
     </script>
 </body>
 </html>

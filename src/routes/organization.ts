@@ -13,4 +13,4 @@ organizationRouter.get("/", organizationCtrl.getOrganizations)
 //get organization by id
 organizationRouter.get("/:id", organizationCtrl.getOrganizationById)
 
-//create organization post
+organizationRouter.post("/create", organizationCtrl.createOrganizationPost)

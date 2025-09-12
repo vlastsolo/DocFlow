@@ -26,10 +26,15 @@ app.engine('hbs', engine({
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
+
+
 // Добавьте эти middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Добавьте статическую директорию для загруженных файлов
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/organizations', organizationRouter);
 

@@ -8,9 +8,9 @@
   "description": "1учебный проект. организация первичного документооборота организации с использованием ocr и максимально возможной автоматизацией",
   "main": "dist/docflow.js",
   "scripts": {
-     "start": "node dist/docflow.js",
-  "build": "tsc",
-  "dev": "tsx watch src/docflow.ts"
+    "start": "node dist/docflow.js",
+    "build": "tsc",
+    "dev": "tsx watch src/docflow.ts"
   },
   "ts-node": {
     "esm": true,
@@ -23,6 +23,7 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-handlebars": "^8.0.1",
+    "multiparty": "^4.2.3",
     "reflect-metadata": "^0.2.2",
     "sqlite3": "^5.1.7",
     "typeorm": "^0.3.26"
