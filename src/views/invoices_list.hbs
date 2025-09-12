@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .status-paid {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .status-draft {
+            color: #6c757d;
+            font-weight: bold;
+        }
+        .status-overdue {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .numeric {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .badge-overdue {
+            background-color: #dc3545;
+            color: white;
+        }
+        .badge-due-soon {
+            background-color: #ffc107;
+            color: black;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-view {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-edit {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-pay {
+            background-color: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{title}}</h1>
+        
+        {{#if invoices.length}}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Номер счета</th>
+                        <th>Дата выставления</th>
+                        <th>Срок оплаты</th>
+                        <th>Сумма</th>
+                        <th>Валюта</th>
+                        <th>Статус</th>
+                        <th>Дней до оплаты</th>
+                        <th>НДС</th>
+                        <th>Дата оплаты</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each invoices}}
+                    <tr>
+                        <td><strong>#{{this.invoiceNumber}}</strong></td>
+                        <td>{{formatDate this.issueDate}}</td>
+                        <td>
+                            {{formatDate this.dueDate}}
+                            {{#if this.isOverdue}}
+                                <span class="badge badge-overdue">Просрочен</span>
+                            {{else if (lt this.daysUntilDue 3)}}
+                                <span class="badge badge-due-soon">Скоро</span>
+                            {{/if}}
+                        </td>
+                        <td class="numeric">{{formatCurrency this.totalAmount}}</td>
+                        <td>{{this.currency}}</td>
+                        <td>
+                            <span class="status-{{this.status.name}}">
+                                {{#if (eq this.status.name 'paid')}}Оплачен{{/if}}
+                                {{#if (eq this.status.name 'pending')}}Ожидание{{/if}}
+                                {{#if (eq this.status.name 'draft')}}Черновик{{/if}}
+                                {{#if (eq this.status.name 'overdue')}}Просрочен{{/if}}
+                            </span>
+                        </td>
+                        <td class="numeric">
+                            {{#if this.isPaid}}
+                                -
+                            {{else}}
+                                {{this.daysUntilDue}}
+                            {{/if}}
+                        </td>
+                        <td class="numeric">{{this.taxRate}}%</td>
+                        <td>
+                            {{#if this.paidDate}}
+                                {{formatDate this.paidDate}}
+                            {{else}}
+                                -
+                            {{/if}}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="/invoices/{{this.id}}" class="btn btn-view">Просмотр</a>
+                                {{#unless this.isPaid}}
+                                    <a href="/invoices/{{this.id}}/edit" class="btn btn-edit">Редактировать</a>
+                                    <a href="/invoices/{{this.id}}/pay" class="btn btn-pay">Оплатить</a>
+                                {{/unless}}
+                            </div>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        {{else}}
+            <div class="empty-state">
+                <h3>Счетов не найдено</h3>
+                <p>На данный момент нет доступных счетов.</p>
+            </div>
+        {{/if}}
+    </div>
+</body>
+</html>

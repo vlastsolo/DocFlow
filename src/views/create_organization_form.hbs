@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка файлов</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        .file-input-button {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            display: inline-block;
+            transition: background 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .file-input-button:hover {
+            background: #5a67d8;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .error {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .success {
+            color: #38a169;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .file-preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .file-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .file-type {
+            margin-top: 10px;
+            font-weight: 500;
+            color: #667eea;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Создание организации</h1>
+       
+        <form id="uploadForm" action="/organizations/create" method="POST" enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label for="file">Добавьте фото или PDF карточки организации:</label>
+                <div class="file-input-wrapper">
+                    <div class="file-input-button">Выбрать файл</div>
+                    <input type="file" id="file" name="file" accept=".jpg,.jpeg,.png,.gif,.pdf,.PDF" required>
+                </div>
+                <div class="file-name" id="fileName">Файл не выбран</div>
+                <div class="error" id="fileError">Пожалуйста, выберите файл</div>
+            </div>
+
+            <div class="file-preview">
+                <img id="imagePreview" src="#" alt="Предпросмотр">
+                <div class="file-type" id="fileType"></div>
+            </div>
+
+            <button type="submit" class="btn-submit">Создать организацию</button>
+           
+            <div class="success" id="successMessage">Файл успешно загружен!</div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('file');
+            const fileName = document.getElementById('fileName');
+            const imagePreview = document.getElementById('imagePreview');
+            const fileType = document.getElementById('fileType');
+            const form = document.getElementById('uploadForm');
+            const titleInput = document.getElementById('title');
+            const titleError = document.getElementById('titleError');
+            const fileError = document.getElementById('fileError');
+            const successMessage = document.getElementById('successMessage');
+
+            // Обработчик выбора файла
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    fileName.textContent = file.name;
+                   
+                    // Показываем тип файла
+                    fileType.textContent = file.type.includes('pdf') ? 'PDF документ' : 'Изображение';
+                    fileType.style.display = 'block';
+
+                    // Предпросмотр для изображений
+                    if (file.type.includes('image')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        imagePreview.style.display = 'none';
+                    }
+
+                    fileError.style.display = 'none';
+                } else {
+                    fileName.textContent = 'Файл не выбран';
+                    imagePreview.style.display = 'none';
+                    fileType.style.display = 'none';
+                }
+            });
+
+            // Валидация формы
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+
+                if (!titleInput.value.trim()) {
+                    titleError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    titleError.style.display = 'none';
+                }
+
+                if (!fileInput.files[0]) {
+                    fileError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    fileError.style.display = 'none';
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+            // Показ сообщения об успехе, если есть параметр в URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>
