@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование организации</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .organization-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .organization-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 3px solid #667eea;
+            cursor: pointer;
+        }
+
+        .photo-upload {
+            text-align: center;
+        }
+
+        .photo-upload input {
+            display: none;
+        }
+
+        .photo-upload-label {
+            display: block;
+            margin-top: 10px;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .tags-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            min-height: 50px;
+        }
+
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .tags-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 60px;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        .tags-input:focus {
+            border: none;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .server-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .server-error {
+            background-color: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        
+        .server-success {
+            background-color: #efe;
+            color: #363;
+            border: 1px solid #cfc;
+        }
+
+        .section-title {
+            color: #333;
+            margin: 25px 0 15px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .bank-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Редактирование организации</h1>
+        
+        <!-- Сообщения с сервера -->
+        <div class="server-message" id="serverMessage"></div>
+
+        <form id="organizationForm" action="/organizations/{{organization.id}}/update" method="POST">
+            
+            <div class="organization-header">
+                <div class="photo-upload">
+                    <img src="{{organization.photo}}" alt="Фото организации" class="organization-photo" id="photoPreview" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNNzUgNjBINzVNNjAgMzBDNjAgMzMuMzEzNyA1Ny4zMTM3IDM2IDU0IDM2QzUwLjY4NjMgMzYgNDggMzMuMzEzNyA0OCAzMEM0OCAyNi42ODYzIDUwLjY4NjMgMjQgNTQgMjRDUzYgMjYuNjg2MyA2MCAzMFpNNjAgODBDNDQuNTY4NSA4MCAzMiA2Ny40MzE1IDMyIDUyQzMyIDM2LjU2ODUgNDQuNTY4NSAyNCA2MCAyNEM3NS40MzE1IDI0IDg4IDM2LjU2ODUgODggNTJDODggNjcuNDMxNSA3NS40MzE1IDgwIDYwIDgwWiIgc3Ryb2tlPSIjOTk5OTk5IiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4='">
+                    <label for="photoInput" class="photo-upload-label">Изменить фото</label>
+                    <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;">
+                </div>
+                <div>
+                    <h2>{{organization.name}}</h2>
+                    <div>ИНН: {{organization.inn}} {{#if organization.kpp}}/ КПП: {{organization.kpp}}{{/if}}</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Название организации *</label>
+                <input type="text" id="name" name="name" value="{{organization.name}}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">Полное наименование</label>
+                <input type="text" id="fullName" name="fullName" value="{{organization.fullName}}">
+            </div>
+
+            <div class="form-group">
+                <label for="inn">ИНН *</label>
+                <input type="text" id="inn" name="inn" value="{{organization.inn}}" maxlength="12" required pattern="\d{10,12}">
+            </div>
+
+            <div class="form-group">
+                <label for="kpp">КПП</label>
+                <input type="text" id="kpp" name="kpp" value="{{organization.kpp}}" maxlength="9" pattern="\d{9}">
+            </div>
+
+            <div class="form-group">
+                <label for="address">Юридический адрес</label>
+                <textarea id="address" name="address">{{organization.address}}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="actualAddress">Фактический адрес</label>
+                <textarea id="actualAddress" name="actualAddress">{{organization.actualAddress}}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Телефон</label>
+                <input type="tel" id="phone" name="phone" value="{{organization.phone}}">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{organization.email}}">
+            </div>
+
+            <h3 class="section-title">Банковские реквизиты</h3>
+
+            <div class="bank-section">
+                <div class="form-group">
+                    <label for="bankName">Наименование банка</label>
+                    <input type="text" id="bankName" name="bankName" value="{{organization.bankName}}">
+                </div>
+
+                <div class="form-group">
+                    <label for="bankAccount">Расчетный счет</label>
+                    <input type="text" id="bankAccount" name="bankAccount" value="{{organization.bankAccount}}">
+                </div>
+
+                <div class="form-group">
+                    <label for="corrAccount">Корреспондентский счет</label>
+                    <input type="text" id="corrAccount" name="corrAccount" value="{{organization.corrAccount}}">
+                </div>
+
+                <div class="form-group">
+                    <label for="bik">БИК</label>
+                    <input type="text" id="bik" name="bik" value="{{organization.bik}}" maxlength="9" pattern="\d{9}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="discount">Скидка (%)</label>
+                <input type="number" id="discount" name="discount" value="{{organization.discount}}" min="0" max="100" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="defaultProductService">Товар/услуга по умолчанию</label>
+                <select id="defaultProductService" name="defaultProductService">
+                    <option value="">-- Не выбрано --</option>
+                    {{#each productServices}}
+                    <option value="{{this.id}}" {{#if (eq this.id ../organization.defaultProductService.id)}}selected{{/if}}>
+                        {{this.name}}
+                    </option>
+                    {{/each}}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Тэги</label>
+                <div class="tags-input-container" id="tagsContainer">
+                    {{#each organization.tags}}
+                    <span class="tag">
+                        {{this}}
+                        <span class="tag-remove" onclick="removeTag(this)">×</span>
+                    </span>
+                    {{/each}}
+                    <input type="text" class="tags-input" id="tagsInput" placeholder="Добавить тэг...">
+                </div>
+                <input type="hidden" id="tags" name="tags" value="{{organization.tags}}">
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="isMyOrganization" name="isMyOrganization" {{#if organization.isMyOrganization}}checked{{/if}}>
+                <label for="isMyOrganization">Моя организация</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="isDefaultOrganization" name="isDefaultOrganization" {{#if organization.isDefaultOrganization}}checked{{/if}}>
+                <label for="isDefaultOrganization">Организация по умолчанию</label>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                <a href="/organizations" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('organizationForm');
+        const serverMessage = document.getElementById('serverMessage');
+        const tagsInput = document.getElementById('tagsInput');
+        const tagsHidden = document.getElementById('tags');
+        const photoInput = document.getElementById('photoInput');
+        const photoPreview = document.getElementById('photoPreview');
+
+        // Функция для отображения сообщений
+        function showMessage(text, isError = false) {
+            serverMessage.textContent = text;
+            serverMessage.className = isError ? 'server-message server-error' : 'server-message server-success';
+            serverMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                serverMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // Обработчик добавления тэгов
+        tagsInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tagText = tagsInput.value.trim();
+                if (tagText) {
+                    addTag(tagText);
+                    tagsInput.value = '';
+                    updateTagsHidden();
+                }
+            }
+        });
+
+        tagsInput.addEventListener('blur', function() {
+            const tagText = tagsInput.value.trim();
+            if (tagText) {
+                addTag(tagText);
+                tagsInput.value = '';
+                updateTagsHidden();
+            }
+        });
+
+        // Функция добавления тэга
+        function addTag(text) {
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.innerHTML = `${text}<span class="tag-remove" onclick="removeTag(this)">×</span>`;
+            tagsContainer.insertBefore(tag, tagsInput);
+        }
+
+        // Функция удаления тэга (должна быть глобальной для onclick)
+        window.removeTag = function(element) {
+            element.parentElement.remove();
+            updateTagsHidden();
+        }
+
+        // Обновление скрытого поля с тэгами
+        function updateTagsHidden() {
+            const tags = Array.from(document.querySelectorAll('.tag'))
+                .map(tag => tag.textContent.replace('×', '').trim());
+            tagsHidden.value = JSON.stringify(tags);
+        }
+
+        // Предзаполняем тэги при загрузке
+        updateTagsHidden();
+
+        // Обработчик загрузки фото
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.includes('image')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    photoPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Обработчик отправки формы
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            if (photoInput.files[0]) {
+                formData.append('photoFile', photoInput.files[0]);
+            }
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('Данные успешно обновлены!');
+                    // Обновляем фото если оно было изменено
+                    if (result.photoUrl) {
+                        photoPreview.src = result.photoUrl;
+                    }
+                } else {
+                    showMessage(result.message || 'Ошибка при обновлении данных', true);
+                }
+            } catch (error) {
+                showMessage('Ошибка сети. Попробуйте еще раз.', true);
+            }
+        });
+
+        // Показ сообщений из URL параметров
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            showMessage('Данные успешно обновлены!');
+        }
+        
+        if (urlParams.get('error') === 'true') {
+            const message = urlParams.get('message') || 'Произошла ошибка при обновлении данных';
+            showMessage(message, true);
+        }
+    });
+    </script>
+</body>
+</html>

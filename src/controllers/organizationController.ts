@@ -46,6 +46,7 @@ export class organizationController {
         // Перенаправляем с сообщением об успехе
          res.redirect('/organizations/create?success=true');
       } catch (error) {
+        
         console.error('Error creating organization:', error);
         
         let errorMessage = 'Ошибка при создании организации';
