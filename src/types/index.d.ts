@@ -13,6 +13,9 @@ declare global {
         filePath: string;
         size: number;
         mimetype: string;
+        extractedText?: string;
+        aiAnalysis?: any;
+        createdOrganization?: any;
       };
       formFields?: any;
     }
