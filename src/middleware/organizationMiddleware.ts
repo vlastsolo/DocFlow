@@ -35,7 +35,7 @@ export async function organizationFindById(
   try {
     const organizationRepository = AppDataSource.getRepository(Organization);
     const organization = await organizationRepository.findOne({
-      where: { id: Number(req.params.id) }
+      where: { id: String(req.params.id) }
     });
 
     if (!organization) {
