@@ -8,62 +8,62 @@ export class Organization {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
+
   @Column({ type: 'varchar', unique: true, length: 12 })
-  inn: string; // ИНН
+  inn: string;
 
   @Column({ type: 'varchar', nullable: true, length: 9 })
-  kpp: string; // КПП
-
-  @Column({ type: 'varchar', length: 255 })
-  name: string; // Название организации
+  kpp: string | null;
 
   @Column({ type: 'varchar', nullable: true, length: 500 })
-  fullName: string; // Полное наименование
+  fullName: string | null;
 
   @Column({ type: 'text', nullable: true })
-  address: string; // Юридический адрес
+  address: string | null;
 
   @Column({ type: 'text', nullable: true })
-  actualAddress: string; // Фактический адрес
+  actualAddress: string | null;
 
   @Column({ type: 'varchar', nullable: true, length: 20 })
-  phone: string; // Телефон
+  phone: string | null;
 
   @Column({ type: 'varchar', nullable: true, length: 100 })
-  email: string; // Email
+  email: string | null;
 
   @Column({ type: 'varchar', nullable: true, length: 255 })
-  bankName: string; // Наименование банка
+  bankName: string | null;
 
   @Column({ type: 'varchar', nullable: true, length: 20 })
-  bankAccount: string; // Расчетный счет
+  bankAccount: string | null;
 
   @Column({ type: 'varchar', nullable: true, length: 20 })
-  corrAccount: string; // Корреспондентский счет
+  corrAccount: string | null;
 
   @Column({ type: 'varchar', nullable: true, length: 9 })
-  bik: string; // БИК
+  bik: string | null;
 
   @Column('decimal', { precision: 5, scale: 2, default: 0 })
-  discount: number; // Размер скидки от базовой цены (в процентах)
+  discount: number;
 
   @ManyToOne(() => ProductService, { nullable: true })
-  defaultProductService: ProductService; // Товар/услуга по умолчанию
+  defaultProductService: ProductService | null;
 
   @Column('simple-array', { nullable: true })
-  tags: string[]; // Тэги для сортировки и фильтрации
+  tags: string[];
 
   @Column({ type: 'boolean', default: false })
-  isMyOrganization: boolean; // Моя организация
+  isMyOrganization: boolean;
 
   @Column({ type: 'boolean', default: false })
-  isDefaultOrganization: boolean; // Организация по умолчанию
+  isDefaultOrganization: boolean;
 
   @Column({ type: 'text', nullable: true })
-  photo: string; // Путь к фото или base64 строка
+  photo: string | null;
 
-  @OneToMany(() => economicActivity, economicActivity => economicActivity.counterparty)
-  economicActivities: economicActivity[];
+  //@OneToMany(() => economicActivity, economicActivity => economicActivity.counterparty)
+  //economicActivities: economicActivity[];
 
   @CreateDateColumn()
   createdAt: Date;

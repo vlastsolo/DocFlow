@@ -31,8 +31,8 @@ export class ProductService {
   @Column({ type: "boolean", default: true }) // Добавлен тип
   isActive: boolean; // Активен ли товар/услуга
 
-  @OneToMany(() => economicActivity, economicActivity => economicActivity.productService)
-  economicActivities: economicActivity[];
+ //@OneToMany(() => economicActivity, economicActivity => economicActivity.productService)
+  //economicActivities: economicActivity[];
 
   @CreateDateColumn()
   createdAt: Date;

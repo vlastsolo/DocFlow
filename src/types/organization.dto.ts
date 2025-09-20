@@ -1,7 +1,7 @@
-// types/organization.dto.ts
+
 export interface OrganizationData {
-  name?: string;
-  inn?: string;
+  name: string;
+  inn: string;
   kpp?: string;
   ogrn?: string;
   legalAddress?: string;

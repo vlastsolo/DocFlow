@@ -35,8 +35,7 @@ export async function organizationFindById(
   try {
     const organizationRepository = AppDataSource.getRepository(Organization);
     const organization = await organizationRepository.findOne({
-      where: { id: Number(req.params.id) },
-      relations: ["invoices"],
+      where: { id: Number(req.params.id) }
     });
 
     if (!organization) {
@@ -70,6 +69,7 @@ export async function organizationCreatePost(
   next: NextFunction
 ) {
   try {
+    console.log('File info from previous middleware:', req.fileInfo);
     const form = new multiparty.Form();
     const uploadDir = path.join(process.cwd(), "uploads", "organizations");
 
@@ -192,7 +192,7 @@ export async function organizationCreatePost(
           }
         }
 
-        async function sendToDeepSeek(extractedText: string): Promise<any> {
+        async function sendToDeepSeek(extractedText: string): Promise<OrganizationData> {
           try {
             const response = await fetch(DEEP_SEEK_CONFIG.apiUrl, {
               method: "POST",
@@ -238,30 +238,39 @@ export async function organizationCreatePost(
               );
             }
 
-            return await response.json();
+            const data = await response.json();
+            const aiResponse = data.choices[0].message.content;
+
+            let organizationData: OrganizationData = {} as OrganizationData;
+
+            // Обрабатываем ответ от AI
+            if (typeof aiResponse === 'string') {
+              // AI вернул текст, пытаемся извлечь JSON
+              try {
+                const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                  organizationData = JSON.parse(jsonMatch[0]);
+                }
+              } catch (parseError) {
+                console.warn("Failed to parse AI response as JSON:", parseError);
+              }
+            } else if (typeof aiResponse === 'object' && aiResponse !== null) {
+              // AI уже вернул готовый объект
+              organizationData = aiResponse as OrganizationData;
+            } else {
+              console.warn("Unexpected AI response format:", typeof aiResponse);
+            }
+            console.log('AI Analysis result:', aiResponse);
+            return organizationData;
           } catch (error) {
             console.error("Deep Seek error:", error);
             throw new Error("Failed to analyze text with Deep Seek");
           }
         }
-
+        
         const extractedText = await sendToYandexVision(filePath);
-        const deepSeekAnalysis = await sendToDeepSeek(extractedText);
-        let organizationData: OrganizationData = {};
-        try {
-          const aiContent = deepSeekAnalysis.choices[0].message.content;
-          // Извлекаем JSON из текста (может содержать дополнительные пояснения)
-          const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            organizationData = JSON.parse(jsonMatch[0]);
-          } else {
-            throw new Error("No JSON found in AI response");
-          }
-        } catch (parseError) {
-          console.error("Error parsing AI response:", parseError);
-          throw createError("Failed to parse AI analysis", 500);
-        }
-
+        const organizationData = await sendToDeepSeek(extractedText);
+        
         // Сохраняем информацию о файле и данные организации в req
         req.fileInfo = {
           originalName: file.originalFilename,
@@ -270,12 +279,12 @@ export async function organizationCreatePost(
           size: file.size,
           mimetype: file.headers["content-type"],
           extractedText: extractedText,
-          aiAnalysis: organizationData, // Добавляем распарсенные данные
+          aiAnalysis: organizationData, // Используем уже распарсенные данные
         };
 
         // Сохраняем поля формы
         req.formFields = fields;
-        console.log(req.fileInfo.aiAnalysis.choices[0].message.content);
+        console.log(req.fileInfo?.aiAnalysis);
         next();
       } catch (error) {
         handleError(error, res, "Error processing file");

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список организаций</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        h1 {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-select {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .organizations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .organization-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #eee;
+            position: relative;
+        }
+
+        .organization-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .organization-photo {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #667eea;
+            flex-shrink: 0;
+        }
+
+        .organization-info {
+            flex: 1;
+        }
+
+        .organization-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .organization-name:hover {
+            color: #667eea;
+        }
+
+        .organization-inn {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .organization-details {
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .detail-label {
+            color: #777;
+            min-width: 120px;
+        }
+
+        .detail-value {
+            color: #333;
+            flex: 1;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tag {
+            background: #f0f4ff;
+            color: #667eea;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-primary {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .badge-secondary {
+            background: #f6ffed;
+            color: #52c41a;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            text-decoration: none;
+            color: #555;
+            border: 1px solid #ddd;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #f9f9f9;
+        }
+
+        .action-btn-primary {
+            background: #667eea;
+            color: white;
+            border: none;
+        }
+
+        .action-btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .pagination-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .pagination-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .server-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .server-error {
+            background-color: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        
+        .server-success {
+            background-color: #efe;
+            color: #363;
+            border: 1px solid #cfc;
+        }
+
+        @media (max-width: 768px) {
+            .organizations-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Организации</h1>
+            <a href="/organizations/create" class="btn btn-primary">Добавить организацию</a>
+        </div>
+
+        {{#if message}}
+        <div class="server-message {{#if success}}server-success{{else}}server-error{{/if}}">
+            {{message}}
+        </div>
+        {{/if}}
+
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Поиск по названию, ИНН, адресу...">
+            <select class="filter-select" id="filterSelect">
+                <option value="all">Все организации</option>
+                <option value="my">Мои организации</option>
+                <option value="default">Организация по умолчанию</option>
+            </select>
+        </div>
+
+        {{#if organizations.length}}
+        <div class="organizations-grid" id="organizationsContainer">
+            {{#each organizations}}
+            <div class="organization-card" data-tags="{{this.tags}}" data-is-my="{{this.isMyOrganization}}" data-is-default="{{this.isDefaultOrganization}}">
+                <div class="card-header">
+                    <img src="{{this.photo}}" alt="Фото организации" class="organization-photo" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAiIGhlaWdodD0iNzAiIHZpZXdCb3g9IjAgMCA3MCA3MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNzAiIGhlaWdodD0iNzAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNNDMuNzUgMzVINDMuNzVNMzUgMTcuNUgzNU0zNSA1MkMyNS4zMzA5IDUyIDE3LjUgNDQuMTY5MSAxNy41IDM0LjVDMTcuNSAyNC44MzA5IDI1LjMzMDkgMTcgMzUgMTdDNDQuNjY5MSAxNyA1Mi41IDI0LjgzMDkgNTIuNSAzNC41QzUyLjUgNDQuMTY5MSA0NC42NjkxIDUyIDM1IDUyWiIgc3Ryb2tlPSIjOTk5OTk5IiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4='">
+                    <div class="organization-info">
+                        <a href="/organizations/{{this.id}}" class="organization-name">{{this.name}}</a>
+                        <div class="organization-inn">ИНН: {{this.inn}} {{#if this.kpp}}/ КПП: {{this.kpp}}{{/if}}</div>
+                    </div>
+                </div>
+
+                <div class="organization-details">
+                    {{#if this.fullName}}
+                    <div class="detail-item">
+                        <span class="detail-label">Полное название:</span>
+                        <span class="detail-value">{{this.fullName}}</span>
+                    </div>
+                    {{/if}}
+                    
+                    {{#if this.address}}
+                    <div class="detail-item">
+                        <span class="detail-label">Адрес:</span>
+                        <span class="detail-value">{{this.address}}</span>
+                    </div>
+                    {{/if}}
+                    
+                    {{#if this.phone}}
+                    <div class="detail-item">
+                        <span class="detail-label">Телефон:</span>
+                        <span class="detail-value">{{this.phone}}</span>
+                    </div>
+                    {{/if}}
+                    
+                    {{#if this.email}}
+                    <div class="detail-item">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value">{{this.email}}</span>
+                    </div>
+                    {{/if}}
+                    
+                    {{#if this.discount}}
+                    <div class="detail-item">
+                        <span class="detail-label">Скидка:</span>
+                        <span class="detail-value">{{this.discount}}%</span>
+                    </div>
+                    {{/if}}
+                </div>
+
+                {{#if this.tags.length}}
+                <div class="tags-container">
+                    {{#each this.tags}}
+                    <span class="tag">{{this}}</span>
+                    {{/each}}
+                </div>
+                {{/if}}
+
+                <div class="card-footer">
+                    <div>
+                        {{#if this.isMyOrganization}}
+                        <span class="badge badge-primary">Моя организация</span>
+                        {{/if}}
+                        {{#if this.isDefaultOrganization}}
+                        <span class="badge badge-secondary">По умолчанию</span>
+                        {{/if}}
+                    </div>
+                    <div class="actions">
+                        <a href="/organizations/{{this.id}}" class="action-btn">Просмотр</a>
+                        <a href="/organizations/{{this.id}}/edit" class="action-btn action-btn-primary">Редактировать</a>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-state">
+            <div class="empty-state-icon">🏢</div>
+            <h3>Организации не найдены</h3>
+            <p>Добавьте свою первую организацию, чтобы начать работу</p>
+            <a href="/organizations/create" class="btn btn-primary" style="margin-top: 15px;">Добавить организацию</a>
+        </div>
+        {{/if}}
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const filterSelect = document.getElementById('filterSelect');
+        const organizationCards = document.querySelectorAll('.organization-card');
+        
+        function filterOrganizations() {
+            const searchText = searchInput.value.toLowerCase();
+            const filterValue = filterSelect.value;
+            
+            organizationCards.forEach(card => {
+                const name = card.querySelector('.organization-name').textContent.toLowerCase();
+                const inn = card.querySelector('.organization-inn').textContent.toLowerCase();
+                const address = card.querySelector('.detail-value') ? card.querySelector('.detail-value').textContent.toLowerCase() : '';
+                const tags = card.getAttribute('data-tags').toLowerCase();
+                const isMy = card.getAttribute('data-is-my') === 'true';
+                const isDefault = card.getAttribute('data-is-default') === 'true';
+                
+                let matchesSearch = name.includes(searchText) || 
+                                  inn.includes(searchText) || 
+                                  address.includes(searchText) ||
+                                  tags.includes(searchText);
+                
+                let matchesFilter = true;
+                if (filterValue === 'my') {
+                    matchesFilter = isMy;
+                } else if (filterValue === 'default') {
+                    matchesFilter = isDefault;
+                }
+                
+                if (matchesSearch && matchesFilter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        searchInput.addEventListener('input', filterOrganizations);
+        filterSelect.addEventListener('change', filterOrganizations);
+    });
+    </script>
+</body>
+</html>

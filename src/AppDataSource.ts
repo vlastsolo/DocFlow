@@ -1,11 +1,18 @@
 import { DataSource } from "typeorm";
+//import { economicActivity } from "./models/economicActivity";
+import { Organization } from "./models/organization";
+import { ProductService } from "./models/productService";
 
 const AppDataSource = new DataSource({
   type: "sqlite",
   database: "docflowdb.sql",
   synchronize: true,
   logging: true,
-  entities: ["models/**/*.ts"],
+    entities: [
+    Organization,
+    ProductService,
+    //economicActivity
+  ],
   "migrations": ["migrations/**/*.ts"],
   "subscribers": ["src/subscribers/**/*.ts"]
 });

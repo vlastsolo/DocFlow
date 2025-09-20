@@ -14,10 +14,11 @@ declare global {
         size: number;
         mimetype: string;
         extractedText?: string;
-        aiAnalysis?: any;
+        aiAnalysis?: Partial<OrganizationData>;
         createdOrganization?: any;
       };
       formFields?: any;
+      organizations?: Organization[];
     }
   }
 }
